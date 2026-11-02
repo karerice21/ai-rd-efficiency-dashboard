@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="使用虚构数据展示 Token、代码提交与项目台账分析的独立个人作品。">
+  <title>AI 研发效能度量平台 · 演示版</title>
+  <link rel="icon" href="/static/workspace/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/workspace/styles.css">
+  <script src="/static/workspace/app.js" defer></script>
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="#dashboard"><span class="logo">AI</span><span><strong>AI 研发效能度量平台</strong><small>Engineering Intelligence Center</small></span></a>
+  <nav aria-label="主导航"><a href="#dashboard" class="active">首页</a><a href="#tokens">Token 分析</a><a href="#commits">代码提交</a><a href="#projects">项目管理</a><a href="#import">数据导入</a></nav>
+  <span class="source-pill"><span class="dot"></span>个人作品 · 演示数据</span>
+</header>
+<main>
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <section id="dashboard" class="view">
+    <div class="page-heading"><div><p class="eyebrow">研发投入产出总览</p><h1>项目效能看板</h1><p class="subtitle">以项目台账为监控范围，统一查看代码产出与 AI Token 消耗。</p></div><span class="demo-label">星屿科技（虚构）<br><small>UTC 统计 · USD 费用</small></span></div>
+    <form id="filters" class="panel filters">
+      <label>团队筛选<select id="team"><option value="">全部</option></select></label>
+      <label>项目筛选<select id="project"><option value="">全部</option></select></label>
+      <label>开始日期<input type="date" id="start" required></label>
+      <label>结束日期<input type="date" id="end" required></label>
+      <label>统计粒度<select id="grain"><option value="week">周</option><option value="day">日</option><option value="month">月</option></select></label>
+      <button class="primary" type="submit">查询</button><button id="refresh" type="button">刷新数据</button>
+    </form>
+    <div id="kpis" class="kpi-grid" aria-label="核心指标"></div>
+    <section class="panel insights"><p class="eyebrow">EFFICIENCY INSIGHTS</p><h2>AI 效能洞察</h2><ul id="insights"></ul><p class="hint">由统计规则生成；不调用模型，不产生 AI 费用。</p></section>
+    <div class="two-col">
+      <section class="panel"><p class="eyebrow">TOKEN CONSUMPTION</p><h2>Token 消耗趋势</h2><p class="legend"><i class="blue"></i>输入 Token <i class="cyan"></i>输出 Token</p><canvas id="trend" role="img" aria-label="输入和输出 Token 趋势，明细见下方数据表"></canvas></section>
+      <section class="panel"><p class="eyebrow">TOKEN EFFICIENCY</p><h2>代码产出与 Token 效率</h2><p class="hint">每百万 Token 产出行数 · 仅含行数完整且有用量的项目</p><canvas id="efficiency" role="img" aria-label="项目每百万 Token 产出行数"></canvas></section>
+    </div>
+    <div class="two-col">
+      <section class="panel"><p class="eyebrow">PROJECT RANKING</p><h2>项目代码量排行</h2><canvas id="code-ranking" role="img" aria-label="项目新增代码行数排行"></canvas></section>
+      <section class="panel"><p class="eyebrow">PROJECT RANKING</p><h2>项目 Token 使用排行</h2><canvas id="token-ranking" role="img" aria-label="项目 Token 使用排行"></canvas></section>
+    </div>
+    <div class="two-col">
+      <section class="panel"><p class="eyebrow">TEAM DISTRIBUTION</p><h2>团队代码量与 Token 分布</h2><div id="team-table" class="table-wrap"></div></section>
+      <section class="panel"><p class="eyebrow">PROJECT LEDGER</p><h2>项目投入与工期</h2><p class="hint">费用采用导入的 spend；预算、计划及实际人天来自台账。</p><div id="budget-table" class="table-wrap"></div></section>
+    </div>
+    <section class="panel"><p class="eyebrow">PERIOD DETAIL</p><h2>周期统计明细</h2><div id="period-table" class="table-wrap"></div></section>
+  </section>
+
+  <section id="tokens" class="view" hidden>
+    <a class="back" href="#dashboard">← 返回项目看板</a><p class="eyebrow">LITELLM TOKEN ANALYTICS</p><h1>Token 使用分析</h1><p class="subtitle">沿用首页的团队、项目和日期筛选；仅保存用量字段，不保存提示词、密钥或响应正文。</p>
+    <div class="two-col"><section class="panel"><h2>模型 Token 用量</h2><canvas id="models" role="img" aria-label="各模型 Token 使用量"></canvas></section><section class="panel"><h2>模型用量与费用明细</h2><div id="model-table" class="table-wrap"></div><a class="button" href="#import">导入 LiteLLM 日志</a></section></div>
+  </section>
+
+  <section id="commits" class="view" hidden>
+    <a class="back" href="#dashboard">← 返回项目看板</a><p class="eyebrow">GITEE COMMIT ANALYTICS</p><h1>代码提交统计</h1><p class="subtitle">内置模拟提交可离线演示。公开 API 采集仅按需执行，凭据由服务器环境变量提供。</p>
+    <section class="panel"><form id="sync-form" class="sync-form"><label>采集项目<select id="sync-project" required></select></label><button id="sync-button" type="submit" class="primary">采集 Gitee 公开提交</button></form><p id="sync-state" class="hint"></p><p class="hint">日期沿用首页筛选。公开采集只统计提交次数，新增行数标为缺失；不保存作者身份和提交消息。</p></section>
+    <section class="panel"><h2>提交明细 <small>最多显示 500 条</small></h2><div id="commit-table" class="table-wrap"></div></section>
+  </section>
+
+  <section id="projects" class="view" hidden>
+    <a class="back" href="#dashboard">← 返回项目看板</a><div class="page-heading"><div><p class="eyebrow">MONITORING PROJECTS</p><h1>项目管理</h1><p class="subtitle">维护项目名称、团队和仓库位置；使用明确的项目 ID 关联用量与提交。</p></div><button id="add-project" class="primary">新增项目</button></div>
+    <section class="panel"><p id="project-count"></p><div id="project-table" class="table-wrap"></div></section>
+  </section>
+
+  <section id="import" class="view" hidden>
+    <a class="back" href="#dashboard">← 返回项目看板</a><p class="eyebrow">DATA WORKSPACE</p><h1>演示数据导入</h1><p class="subtitle">先登记项目台账，再导入用量日志。文件在本地解析，原始上传文件不落盘。</p>
+    <div class="two-col">
+      <section class="panel"><span class="import-icon">XLSX</span><h2>Excel 项目台账</h2><p class="hint">仅接受单个 projects 工作表，最多 1000 行、2 MiB。数值需为非负数，不接受公式或宏。</p><a class="button" href="/api/template/ledger.xlsx">下载虚构台账模板</a><form class="upload-form" data-kind="ledger"><label>选择台账文件<input type="file" accept=".xlsx" required></label><button class="primary" type="submit">校验并导入台账</button></form></section>
+      <section class="panel"><span class="import-icon purple">JSON</span><h2>LiteLLM 用量日志</h2><p class="hint">导入标准 SpendLogs JSON 数组，使用 project_id 关联台账。按 request_id 去重，最多 1000 条、2 MiB。</p><a class="button" href="/api/template/litellm.json" download="fictional-litellm.json">下载虚构日志示例</a><form class="upload-form" data-kind="litellm"><label>选择日志文件<input type="file" accept=".json" required></label><button class="primary" type="submit">校验并导入用量</button></form></section>
+    </div>
+    <section class="panel"><h2>数据口径</h2><p>输入 Token 对应 prompt_tokens，输出 Token 对应 completion_tokens，总量为二者之和。费用直接累加 spend（USD）。时间戳统一换算为 UTC 日期。</p><p>项目台账按 id 更新，未列出的项目保留。日志按 request_id 去重，已存在的记录保留原值；项目预算和工期为台账当前快照，不随日期筛选变化。</p><p class="hint">个人求职展示请始终使用虚构数据。导入后的数据库位于忽略目录，不应加入 Git。</p></section>
+  </section>
+  <footer><span>AI R&amp;D Efficiency Dashboard</span><span id="data-source">独立实现 · 全部内置数据均为虚构</span></footer>
+</main>
+<dialog id="project-dialog"><form id="project-form"><div class="dialog-heading"><h2 id="dialog-title">新增项目</h2><button type="button" id="close-dialog" aria-label="关闭">×</button></div><div class="dialog-fields">
+  <label>项目 ID<input name="id" required maxlength="40" pattern="[A-Za-z0-9_-]+" placeholder="P007"></label>
+  <label>项目名称<input name="name" required maxlength="100"></label><label>团队<input name="team" required maxlength="100"></label><label>负责人（虚构）<input name="owner" required maxlength="100"></label>
+  <label class="full">仓库地址<input name="repository" type="url" required placeholder="https://example.com/orbit-demo/new-project.git"></label>
+  <label>预算（USD）<input name="budget" type="number" min="0" max="1000000000000" step="0.01" value="1000" required></label><label>计划人天<input name="planned_days" type="number" min="0" max="1000000000000" step="0.1" value="30" required></label><label>实际人天<input name="actual_days" type="number" min="0" max="1000000000000" step="0.1" value="0" required></label><label>状态<select name="status"><option>进行中</option><option>已完成</option><option>已暂停</option></select></label>
+  </div><p class="hint">虚构仓库使用 example.com；公开 API 采集使用 gitee.com 的 owner/repo 地址。</p><div class="dialog-actions"><button type="button" id="cancel-dialog">取消</button><button type="submit" class="primary">保存项目</button></div><p id="dialog-error" role="alert"></p></form></dialog>
+</body></html>

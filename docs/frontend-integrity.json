@@ -1,0 +1,35 @@
+{
+  "retained_assets": [
+    {
+      "file": "static/index.html",
+      "sha256": "e7d37b3cbc1ca78d47547f1ebeb9074e8b557b313fe1cf9eeb7bda9654629461",
+      "unchanged": true
+    },
+    {
+      "file": "static/app.js",
+      "sha256": "99f13d42ab2d16022c314a9f4b45293587932b92cd1aa22028ba7fac9df90057",
+      "unchanged": true
+    },
+    {
+      "file": "static/styles.css",
+      "sha256": "7ab7205134bbac62113d092fbd4ceb000e6187959e45e1f2f1a67535ee846473",
+      "unchanged": true
+    },
+    {
+      "file": "static/favicon.svg",
+      "sha256": "b805112e56169d908f0f3fa3065bc404d739974d52961067305f07a50ac50ceb",
+      "unchanged": true
+    },
+    {
+      "file": "static/login.html",
+      "sha256": "e6d7fd38c893009c7fabf211f1126ecf00cbb9de47b8e272bf25c39e702c661e",
+      "unchanged": true
+    },
+    {
+      "file": "static/login.css",
+      "sha256": "f6f396043a97c371c46c964ba6f298ae179e64605b40c87c8cc4f7c502a5375f",
+      "unchanged": true
+    }
+  ],
+  "all_unchanged": true
+}

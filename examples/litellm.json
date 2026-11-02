@@ -1,0 +1,12 @@
+[
+  {
+    "request_id": "sample-request-001",
+    "project_id": "P001",
+    "startTime": "2026-10-15T08:00:00Z",
+    "model": "demo-coder",
+    "prompt_tokens": 12000,
+    "completion_tokens": 3000,
+    "total_tokens": 15000,
+    "spend": 0.0168
+  }
+]

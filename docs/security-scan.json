@@ -1,0 +1,7 @@
+{
+  "scope": "prospective Git files",
+  "scanned_files": 45,
+  "findings": [],
+  "passed": true,
+  "limits": "Heuristic scan; images, intellectual property and business semantics require human review."
+}

@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light" />
+    <title>AI 研发效能度量平台</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css?v=20260921.1" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">AI</div>
+        <div>
+          <h1>AI 研发效能度量平台</h1>
+          <p>Engineering Intelligence Center</p>
+        </div>
+      </div>
+      <nav class="top-nav" aria-label="平台导航">
+        <a id="dashboardNavButton" class="top-nav-link active" href="#/">首页</a>
+        <a id="codingPlanButton" class="top-nav-link" href="#/coding-plan">互联网套餐用量</a>
+        <a id="manageProjectsButton" class="top-nav-link" href="#/management">项目管理</a>
+      </nav>
+      <div class="source-state">
+        <span id="sourceBadge" class="source-badge">正在读取数据源</span>
+        <span id="syncTime" class="sync-time">—</span>
+        <button id="logoutButton" class="logout-button" type="button">退出登录</button>
+      </div>
+    </header>
+
+    <main class="page-shell">
+      <section id="dashboardView">
+        <div class="page-heading">
+          <div>
+            <span class="eyebrow">研发投入产出总览</span>
+            <h2>项目效能看板</h2>
+            <p>以项目台账为监控范围，统一查看代码产出与 AI Token 消耗。</p>
+          </div>
+        </div>
+
+        <section class="filter-panel panel">
+          <div class="filter-controls">
+            <div class="filter-field">
+              <span>团队筛选</span>
+              <details id="teamFilter" class="multi-select">
+                <summary><span class="multi-select-label">全部</span></summary>
+                <div class="multi-select-options" role="group" aria-label="团队筛选选项"></div>
+              </details>
+            </div>
+            <div class="filter-field">
+              <span>项目筛选</span>
+              <details id="projectFilter" class="multi-select">
+                <summary><span class="multi-select-label">全部</span></summary>
+                <div class="multi-select-options" role="group" aria-label="项目筛选选项"></div>
+              </details>
+            </div>
+            <label>
+              <span>开始日期</span>
+              <input id="startDate" type="date" />
+            </label>
+            <label>
+              <span>结束日期</span>
+              <input id="endDate" type="date" />
+            </label>
+            <div class="filter-field granularity-field">
+              <span>统计与环比粒度</span>
+              <div id="dashboardGranularityTabs" class="period-tabs" role="tablist" aria-label="统计与环比粒度">
+                <button class="period-tab active" data-dashboard-granularity="week" role="tab" aria-selected="true" type="button">周</button>
+                <button class="period-tab" data-dashboard-granularity="biweek" role="tab" aria-selected="false" type="button">双周</button>
+                <button class="period-tab" data-dashboard-granularity="month" role="tab" aria-selected="false" type="button">月</button>
+                <button class="period-tab" data-dashboard-granularity="quarter" role="tab" aria-selected="false" type="button">季度</button>
+              </div>
+            </div>
+          </div>
+          <div class="filter-actions" aria-label="看板操作">
+            <button id="queryButton" class="button primary" type="button">查询</button>
+            <button id="refreshButton" class="button secondary" type="button">刷新数据</button>
+            <button id="codeUploadButton" class="button upload" type="button">上传代码统计</button>
+            <select id="reportFormat" class="report-format" aria-label="报告格式">
+              <option value="pdf">PDF 报告</option>
+              <option value="docx">Word 报告</option>
+            </select>
+            <button id="reportButton" class="button secondary" type="button">生成报告</button>
+          </div>
+          <input
+            id="codeUploadInput"
+            class="hidden"
+            type="file"
+            accept=".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            aria-label="上传代码统计 CSV 或 XLSX"
+          />
+        </section>
+
+        <section id="metricCards" class="metric-grid" aria-label="核心指标"></section>
+
+        <section class="dashboard-grid trend-grid" aria-label="效能趋势分析">
+          <article class="panel chart-card insight-card">
+            <div class="panel-heading">
+              <div><span class="eyebrow">EFFICIENCY INSIGHTS</span><h3>AI 效能洞察</h3></div>
+            </div>
+            <div id="efficiencyInsights" class="insight-list" aria-live="polite"></div>
+            <p id="insightMethodNote" class="insight-method-note">基于当前筛选范围与统计规则自动生成，数据不出内网。</p>
+          </article>
+          <article class="panel chart-card wide">
+            <div class="panel-heading">
+              <div><span class="eyebrow">TOKEN CONSUMPTION</span><h3>Token 消耗趋势</h3></div>
+              <div class="legend-row">
+                <span class="legend-item"><i class="dot orange"></i>总 Token 数</span>
+                <span class="legend-item"><i class="legend-average"></i>平均值</span>
+              </div>
+            </div>
+            <div id="codeTrend" class="chart"></div>
+          </article>
+          <article class="panel chart-card wide">
+            <div class="panel-heading efficiency-panel-heading">
+              <div><span class="eyebrow">TOKEN EFFICIENCY</span><h3>Token Efficiency</h3></div>
+              <div class="efficiency-heading-tools">
+                <div class="legend-row">
+                  <span class="legend-item"><i class="legend-bar"></i>周期新增代码行</span>
+                  <span class="legend-item"><i class="legend-line"></i>Token Efficiency</span>
+                  <span class="legend-item"><i class="legend-average"></i>平均值</span>
+                </div>
+              </div>
+            </div>
+            <div id="tokenTrend" class="chart"></div>
+          </article>
+        </section>
+
+        <section class="dashboard-grid ranking-grid" aria-label="项目排行">
+          <article class="panel chart-card">
+            <div class="panel-heading">
+              <div><span class="eyebrow">PROJECT RANKING</span><h3>项目代码量排行</h3></div>
+            </div>
+            <div id="codeRanking" class="ranking-chart"></div>
+          </article>
+          <article class="panel chart-card">
+            <div class="panel-heading">
+              <div><span class="eyebrow">PROJECT RANKING</span><h3>项目 Token 使用排行</h3></div>
+            </div>
+            <div id="tokenRanking" class="ranking-chart"></div>
+          </article>
+          <article class="panel chart-card efficiency-ranking-card">
+            <div class="panel-heading">
+              <div><span class="eyebrow">EFFICIENCY RANKING</span><h3>项目投入产出效率排行</h3></div>
+            </div>
+            <div id="efficiencyRanking" class="ranking-chart efficiency-ranking"></div>
+            <p class="ranking-method-note">仅纳入同时具有新增代码和 Token 用量的项目，按每百万 Token 产出行数从高到低排列。</p>
+          </article>
+        </section>
+
+        <section class="dashboard-grid distribution-grid" aria-label="团队分布与投入产出">
+          <article class="panel chart-card pie-card">
+            <div class="panel-heading">
+              <div><span class="eyebrow">CODE DISTRIBUTION</span><h3 id="codePieTitle">团队代码量占比</h3></div>
+            </div>
+            <div id="codePie" class="pie-chart"></div>
+          </article>
+          <article class="panel chart-card pie-card">
+            <div class="panel-heading">
+              <div><span class="eyebrow">TOKEN DISTRIBUTION</span><h3 id="tokenPieTitle">团队 Token 占比</h3></div>
+            </div>
+            <div id="tokenPie" class="pie-chart"></div>
+          </article>
+          <article class="panel chart-card team-efficiency-card">
+            <div class="panel-heading">
+              <div><span class="eyebrow">TEAM EFFICIENCY</span><h3>团队投入产出对比</h3></div>
+            </div>
+            <div id="teamEfficiencyComparison" class="team-efficiency-table"></div>
+            <p class="ranking-method-note">投入产出倍数 = 代码占比 ÷ Token 占比。大于 1 表示代码贡献占比高于 Token 投入占比，小于 1 表示 Token 投入占比更高。示例：某团队代码占比为 20%、Token 占比为 10%，倍数为 20% ÷ 10% = 2.00，表示代码贡献占比是 Token 投入占比的 2 倍。</p>
+          </article>
+        </section>
+      </section>
+
+      <section id="projectView" class="hidden">
+        <button id="backButton" class="back-button" type="button">← 返回项目看板</button>
+        <div id="projectContent"></div>
+      </section>
+
+      <section id="projectManagementView" class="hidden">
+        <div class="management-heading">
+          <div>
+            <button id="managementBackButton" class="back-button" type="button">← 返回项目看板</button>
+            <span class="eyebrow">MONITORING PROJECTS</span>
+            <h2>项目管理</h2>
+            <p>维护项目名称、团队和仓库位置；保存后自动执行严格仓库匹配。</p>
+          </div>
+          <button id="addProjectButton" class="button primary" type="button">新增项目</button>
+        </div>
+        <section class="panel management-panel">
+          <div class="management-summary">
+            <span id="managementCount">—</span>
+            <span>停止或删除项目仅影响后续采集，历史代码和 Token 均会保留。</span>
+          </div>
+          <div class="table-scroll">
+            <table class="management-table">
+              <thead>
+                <tr>
+                  <th>项目名称</th>
+                  <th>团队</th>
+                  <th>监控状态</th>
+                  <th>项目位置数量</th>
+                  <th>标准化仓库路径</th>
+                  <th>代码匹配状态</th>
+                  <th>匹配方法</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="managementTable"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+
+      <section id="codingPlanView" class="hidden">
+        <div class="management-heading coding-plan-heading">
+          <div>
+            <button id="codingPlanBackButton" class="back-button" type="button">← 返回项目看板</button>
+            <span class="eyebrow">INTERNET CODING PLAN</span>
+            <h2>互联网平台套餐用量</h2>
+            <p>统一查看 Kimi、MiniMax 与智谱 GLM Coding Plan 的当前额度窗口；API Key 仅在服务端使用。</p>
+          </div>
+          <div class="coding-plan-actions">
+            <span id="codingPlanUpdatedAt" class="table-count">尚未采集</span>
+            <button id="codingPlanRefreshButton" class="button primary" type="button">立即刷新</button>
+          </div>
+        </div>
+
+        <section id="codingPlanMetrics" class="coding-plan-metric-grid" aria-label="套餐采集状态"></section>
+
+        <section class="panel coding-plan-state-panel">
+          <div>
+            <strong id="codingPlanCollectionStatus">正在读取采集状态</strong>
+            <span>页面每 30 秒读取最新快照，后台按照配置周期请求各平台；本版本不保存历史记录。</span>
+          </div>
+          <span id="codingPlanAccountSummary" class="table-count">—</span>
+        </section>
+
+        <section id="codingPlanGrid" class="coding-plan-grid" aria-live="polite">
+          <div class="plan-empty">正在读取套餐用量…</div>
+        </section>
+
+        <section class="panel model-speed-panel" aria-labelledby="modelSpeedTitle">
+          <div class="model-speed-heading">
+            <div>
+              <span class="eyebrow">MODEL PERFORMANCE</span>
+              <h2 id="modelSpeedTitle">模型响应与生成速率</h2>
+              <p>使用固定提示词进行流式标准测速，展示首 Token 延迟与稳定生成速度。凭据仅从服务器环境变量读取。</p>
+            </div>
+            <span class="speed-preview-badge">按需执行</span>
+          </div>
+
+          <form id="modelSpeedForm" class="model-speed-form">
+            <fieldset class="speed-target-fieldset">
+              <legend>测速目标（可多选）</legend>
+              <div id="modelSpeedTargets" class="speed-target-grid" aria-live="polite">
+                <div class="speed-target-empty">正在读取已配置的测速目标…</div>
+              </div>
+            </fieldset>
+            <div class="speed-parameter-grid">
+              <div class="speed-fixed-setting">
+                <span>正式测试次数</span>
+                <strong>1 轮</strong>
+              </div>
+              <div class="speed-fixed-setting">
+                <span>最大输出 Token</span>
+                <strong>100</strong>
+              </div>
+              <button id="modelSpeedStartButton" class="button primary speed-start-button" type="submit">开始标准测速</button>
+            </div>
+            <div id="modelSpeedCostHint" class="speed-cost-hint">
+              固定提示词为“你好？”，每个目标只测试 1 轮且最多输出 100 Token；选择目标后将显示本次输出 Token 理论上限。
+            </div>
+          </form>
+
+          <section id="modelSpeedJobStatus" class="speed-job-status idle" aria-live="polite">
+            <div>
+              <strong>等待开始测速</strong>
+              <span>测速由服务器后台执行，认证信息不会下发到浏览器。</span>
+            </div>
+            <span class="speed-job-progress">—</span>
+          </section>
+
+          <div class="model-speed-results-heading">
+            <div><span class="eyebrow">LATEST RESULT</span><h3>最近一次测速结果</h3></div>
+            <span id="modelSpeedFinishedAt" class="table-count">尚无结果</span>
+          </div>
+          <div class="table-scroll model-speed-table-scroll" tabindex="0" aria-label="模型速率测试结果，可横向滚动">
+            <table class="model-speed-table">
+              <thead>
+                <tr>
+                  <th>目标</th>
+                  <th>状态</th>
+                  <th class="number">TTFT 中位数</th>
+                  <th class="number">生成速度中位数</th>
+                  <th class="number">总耗时中位数</th>
+                  <th>输出 Token 计数方式</th>
+                </tr>
+              </thead>
+              <tbody id="modelSpeedResultTable">
+                <tr><td colspan="6" class="speed-result-empty">完成一次标准测速后在这里查看结果</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="projectEditor" class="project-editor">
+      <form id="projectEditorForm">
+        <div class="editor-heading">
+          <div><span class="eyebrow">PROJECT LEDGER</span><h3 id="projectEditorTitle">新增项目</h3></div>
+          <button id="closeProjectEditorButton" class="icon-button" type="button" aria-label="关闭">×</button>
+        </div>
+        <input id="editingProjectId" type="hidden" />
+        <label>
+          <span>项目名称</span>
+          <input id="projectNameInput" type="text" maxlength="500" required />
+        </label>
+        <label>
+          <span>团队</span>
+          <input id="projectTeamInput" type="text" maxlength="500" required />
+        </label>
+        <label>
+          <span>项目位置</span>
+          <textarea id="projectLocationsInput" rows="7" required placeholder="每行填写一个仓库 URL，支持一个项目配置多个仓库"></textarea>
+        </label>
+        <p class="editor-note">保存时会统一去域名、/_source/、/-/ 页面路径、末尾 .git 和重复斜杠，并依次执行 EXACT、SUFFIX_4、SUFFIX_3。</p>
+        <div class="editor-actions">
+          <button id="cancelProjectEditorButton" class="button secondary" type="button">取消</button>
+          <button id="saveProjectButton" class="button primary" type="submit">保存并匹配</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="loading" class="loading hidden"><span></span><p>正在加载平台数据…</p></div>
+    <div id="toast" class="toast hidden"></div>
+    <script src="/app.js?v=20260921.1" defer></script>
+  </body>
+</html>
